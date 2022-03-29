@@ -2,6 +2,7 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable no-undef */
 /* eslint-disable node/no-missing-import */
+import { fetchONEUSDPrice } from "./fetch";
 import {
   createSuccess,
   getById,
@@ -17,6 +18,7 @@ import {
   getAcceptedTerms,
   getAddress,
   getArbiter,
+  getFee,
   getJobByIndex,
   getMyJobs,
   getTerms,
@@ -25,13 +27,49 @@ import {
   withdrawPay,
 } from "./web3";
 
+const max800 = 800;
+
 async function clickEscrowLink(el: HTMLElement) {
   const nr = el.dataset.nr;
   const jobEscrow = await getJobByIndex(nr);
   const address = await getAddress();
   const arbiter = await getArbiter();
-  getPage(PageState.Escrow, { data: jobEscrow, address, arbiter, nr });
+  let fee = await getFee(jobEscrow.pay);
+  if (fee[1] !== undefined) {
+    fee = fee[1];
+  } else {
+    fee = 0;
+  }
+
+  getPage(PageState.Escrow, { data: jobEscrow, address, arbiter, nr, fee });
 }
+export async function historyPageActions() {
+  const back = getById("backButton");
+  const bttns = document.getElementsByClassName("historyPageButtons");
+
+  for (let i = 0; i < bttns.length; i++) {
+    const bttn = bttns[i] as HTMLElement;
+    bttn.onclick = async function () {
+      const nr = bttn.dataset.nr;
+      const jobEscrow = await getJobByIndex(nr);
+      const address = await getAddress();
+      const arbiter = await getArbiter();
+      let fee = await getFee(jobEscrow.pay);
+      if (fee[1] !== undefined) {
+        fee = fee[1];
+      } else {
+        fee = 0;
+      }
+
+      getPage(PageState.Escrow, { data: jobEscrow, address, arbiter, nr, fee });
+    };
+  }
+
+  back.onclick = function () {
+    getPage(PageState.FindOrCreate, {});
+  };
+}
+
 export async function escrowActions(job, address, arbiter, nr) {
   const back = getById("backButton");
   back.onclick = function () {
@@ -42,12 +80,19 @@ export async function escrowActions(job, address, arbiter, nr) {
   };
   const onReceipt = async (receipt) => {
     const jobEscrow = await getJobByIndex(nr);
+    let fee = await getFee(jobEscrow.pay);
+    if (fee[1] !== undefined) {
+      fee = fee[1];
+    } else {
+      fee = 0;
+    }
 
     getPage(PageState.Escrow, {
       data: jobEscrow,
       address,
       arbiter,
       nr,
+      fee,
     });
   };
   const accepted = await getAcceptedTerms(address);
@@ -62,6 +107,14 @@ export async function escrowActions(job, address, arbiter, nr) {
         depositBttn.onclick = async function () {
           if (parseFloat(amountEl.value) > 0) {
             if (accepted) {
+              const price = await fetchONEUSDPrice();
+              const usdValue = parseFloat(amountEl.value) * price;
+
+              if (usdValue > max800) {
+                renderError("Maximum 800USD value is allowed!");
+                return;
+              }
+
               await depositPay(nr, amountEl.value, address, onError, onReceipt);
             } else {
               renderError("You need to accept the terms first!");
@@ -227,16 +280,21 @@ export async function findOrCreateActions() {
     await requestAccounts();
     try {
       const job = await getJobByIndex(jobidInput.value);
-      if (!job.initialized) {
-        renderError("Invalid");
-      }
+
       const address = await getAddress();
       const arbiter = await getArbiter();
+      let fee = await getFee(job.pay);
+      if (fee[1] !== undefined) {
+        fee = fee[1];
+      } else {
+        fee = 0;
+      }
       getPage(PageState.Escrow, {
         data: job,
         address,
         arbiter,
         nr: jobidInput.value,
+        fee,
       });
     } catch (err) {
       renderError(err);
