@@ -1,0 +1,49 @@
+.marginBottom20 {
+  margin-bottom: 20px !important;
+}
+
+.width-200 {
+  width: 200px;
+}
+
+.maxwidth-200 {
+  max-width: 200px;
+}
+
+.maxwidth-500px {
+  max-width: 500px;
+}
+
+.maxwidth-800px {
+  max-width: 800px;
+}
+
+.center {
+  margin: 0 auto;
+}
+.text-align-center {
+  text-align: center;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.backbutton {
+  width: 30px !important;
+  border-radius: 25px;
+}
