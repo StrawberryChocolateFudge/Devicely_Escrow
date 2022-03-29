@@ -47,3 +47,7 @@
   width: 30px !important;
   border-radius: 25px;
 }
+
+.hover-light:hover {
+  background-color: #ccc;
+}
