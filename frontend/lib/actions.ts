@@ -105,6 +105,7 @@ export async function escrowActions(job, address, arbiter, nr) {
       const refundButton = getById("claim-refund");
       if (depositBttn !== null) {
         depositBttn.onclick = async function () {
+          renderError("");
           if (parseFloat(amountEl.value) > 0) {
             if (accepted) {
               const price = await fetchONEUSDPrice();
@@ -126,6 +127,8 @@ export async function escrowActions(job, address, arbiter, nr) {
       }
       if (deliveredBttn !== null) {
         deliveredBttn.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await confirmDelivery(nr, address, onError, onReceipt);
           } else {
@@ -135,6 +138,8 @@ export async function escrowActions(job, address, arbiter, nr) {
       }
       if (refundButton !== null) {
         refundButton.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await refund(nr, address, onError, onReceipt);
           } else {
@@ -149,6 +154,8 @@ export async function escrowActions(job, address, arbiter, nr) {
 
       if (setRefundBttn !== null) {
         setRefundBttn.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await confirmRefund(nr, address, onError, onReceipt);
           } else {
@@ -159,6 +166,8 @@ export async function escrowActions(job, address, arbiter, nr) {
 
       if (claimPayment !== null) {
         claimPayment.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await withdrawPay(nr, address, onError, onReceipt);
           } else {
@@ -174,6 +183,8 @@ export async function escrowActions(job, address, arbiter, nr) {
 
       if (arbiterRefund !== null) {
         arbiterRefund.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await confirmRefund(nr, address, onError, onReceipt);
           } else {
@@ -183,6 +194,8 @@ export async function escrowActions(job, address, arbiter, nr) {
       }
       if (arbiterDelivered !== null) {
         arbiterDelivered.onclick = async function () {
+          renderError("");
+
           if (accepted) {
             await confirmDelivery(nr, address, onError, onReceipt);
           } else {
