@@ -3,6 +3,7 @@
 import { html, render } from "lit-html";
 import Web3 from "web3";
 import {
+  connectWalletAction,
   escrowActions,
   findOrCreateActions,
   historyPageActions,
@@ -20,6 +21,7 @@ export enum PageState {
   NewEscrow,
   Escrow,
   History,
+  connectWallet,
 }
 
 export function createSuccess(msg: string, nr) {
@@ -71,6 +73,10 @@ export async function getPage(page: PageState, args: any) {
     case PageState.History:
       render(historyPage(args.data), main);
       historyPageActions();
+      break;
+    case PageState.connectWallet:
+      render(ConnectWallet(), main);
+      connectWalletAction();
       break;
     default:
       break;
@@ -640,3 +646,10 @@ export const findOrCreate = html`
 export const History = () => html` <article class="maxwidth-500px center">
   <h3 class="text-align-center">History</h3>
 </article>`;
+
+export const ConnectWallet = () =>
+  html`<article class="maxwdith-500px center">
+    <button id="connect-wallet" class="maxwidth-200 center">
+      Connect Your Wallet
+    </button>
+  </article>`;
