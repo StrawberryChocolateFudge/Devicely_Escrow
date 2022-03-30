@@ -1,5 +1,5 @@
 export const states = {
-  NOTUSA: "Not in USA ",
+  NOTDEFINED: "Not Defined",
   AL: "Alabama ",
   AK: "Alaska ",
   AZ: "Arizona ",
