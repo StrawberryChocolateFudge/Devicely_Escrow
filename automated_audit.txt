@@ -1,0 +1,57 @@
+Escrow.constructor(address)._arbiter (contracts/Escrow.sol#49) lacks a zero-check on :
+                - arbiter = address(_arbiter) (contracts/Escrow.sol#50)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
+
+Reentrancy in Escrow.refund(uint256) (contracts/Escrow.sol#143-154):
+        External calls:
+        - jobs[job].employer.sendValue(pay) (contracts/Escrow.sol#151)
+        - arbiter.sendValue(_fee_) (contracts/Escrow.sol#152)
+        Event emitted after the call(s):
+        - Refund(job,pay,_fee_) (contracts/Escrow.sol#153)
+Reentrancy in Escrow.withdrawPay(uint256) (contracts/Escrow.sol#130-141):
+        External calls:
+        - jobs[job].worker.sendValue(pay) (contracts/Escrow.sol#138)
+        - arbiter.sendValue(_fee_) (contracts/Escrow.sol#139)
+        Event emitted after the call(s):
+        - Withdraw(job,pay,_fee_) (contracts/Escrow.sol#140)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+
+Address.verifyCallResult(bool,bytes,string) (node_modules/@openzeppelin/contracts/utils/Address.sol#201-221) uses assembly
+        - INLINE ASM (node_modules/@openzeppelin/contracts/utils/Address.sol#213-216)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+
+Escrow.withdrawPay(uint256) (contracts/Escrow.sol#130-141) compares to a boolean constant:
+        -require(bool,string)(jobs[job].withdrawn == false,Already withdrawn) (contracts/Escrow.sol#134)
+Escrow.refund(uint256) (contracts/Escrow.sol#143-154) compares to a boolean constant:
+        -require(bool,string)(jobs[job].withdrawn == false,Already withdrawn) (contracts/Escrow.sol#147)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#boolean-equality
+
+Different versions of Solidity is used:
+        - Version used: ['>=0.4.22<0.9.0', '^0.8.0', '^0.8.1']
+        - ^0.8.0 (node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol#4)
+        - ^0.8.1 (node_modules/@openzeppelin/contracts/utils/Address.sol#4)
+        - ^0.8.0 (node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol#4)
+        - >=0.4.22<0.9.0 (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#2)
+        - ^0.8.0 (contracts/Escrow.sol#2)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
+
+Pragma version^0.8.0 (node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol#4) allows old versions
+Pragma version^0.8.1 (node_modules/@openzeppelin/contracts/utils/Address.sol#4) allows old versions
+Pragma version^0.8.0 (node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol#4) allows old versions
+Pragma version>=0.4.22<0.9.0 (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#2) is too complex
+Pragma version^0.8.0 (contracts/Escrow.sol#2) allows old versions
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+
+Low level call in Address.sendValue(address,uint256) (node_modules/@openzeppelin/contracts/utils/Address.sol#60-65):
+        - (success) = recipient.call{value: amount}() (node_modules/@openzeppelin/contracts/utils/Address.sol#63)
+Low level call in Address.functionCallWithValue(address,bytes,uint256,string) (node_modules/@openzeppelin/contracts/utils/Address.sol#128-139):
+        - (success,returndata) = target.call{value: value}(data) (node_modules/@openzeppelin/contracts/utils/Address.sol#137)
+Low level call in Address.functionStaticCall(address,bytes,string) (node_modules/@openzeppelin/contracts/utils/Address.sol#157-166):
+        - (success,returndata) = target.staticcall(data) (node_modules/@openzeppelin/contracts/utils/Address.sol#164)
+Low level call in Address.functionDelegateCall(address,bytes,string) (node_modules/@openzeppelin/contracts/utils/Address.sol#184-193):
+        - (success,returndata) = target.delegatecall(data) (node_modules/@openzeppelin/contracts/utils/Address.sol#191)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+
+Parameter SimpleTerms.acceptedTerms(address)._address (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#61) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+. analyzed (5 contracts with 77 detectors), 17 result(s) found
