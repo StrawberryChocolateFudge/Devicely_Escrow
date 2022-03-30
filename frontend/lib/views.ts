@@ -272,7 +272,7 @@ export const States = () => html`<select
   id="state"
 >
   <option value="null">Jurisdiction State</option>
-  <option value="NOTUSA">Not in USA</option>
+  <option value="NOTDEFINED">Not Defined</option>
   <option value="AL">Alabama</option>
   <option value="AK">Alaska</option>
   <option value="AZ">Arizona</option>
@@ -333,6 +333,8 @@ export const Countries = () => html`
     class="maxwidth-500px center marginBottom20"
   >
     <option value="null">Jurisdiction Country</option>
+    <option value="US">United States</option>
+    <option value="UM">United States Minor Outlying Islands</option>
     <option value="AF">Afghanistan</option>
     <option value="AX">Aland Islands</option>
     <option value="AL">Albania</option>
@@ -571,8 +573,7 @@ export const Countries = () => html`
     <option value="UA">Ukraine</option>
     <option value="AE">United Arab Emirates</option>
     <option value="GB">United Kingdom</option>
-    <option value="US">United States</option>
-    <option value="UM">United States Minor Outlying Islands</option>
+
     <option value="UY">Uruguay</option>
     <option value="UZ">Uzbekistan</option>
     <option value="VU">Vanuatu</option>
