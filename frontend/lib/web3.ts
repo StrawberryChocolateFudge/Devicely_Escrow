@@ -10,7 +10,7 @@ declare global {
 
 // Testnet address
 const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-
+export const getCurrentChainCurrency = () => "ONE";
 const web3 = getWeb3();
 
 const contract = getContract();
@@ -29,6 +29,10 @@ export async function getAcceptedTerms(address) {
 
 export async function getArbiter() {
   return await contract.methods.getArbiter().call();
+}
+
+export async function getFee(amount) {
+  return await contract.methods.calculateFee(amount).call({});
 }
 
 export async function depositPay(to, amount, from, onError, onReceipt) {
