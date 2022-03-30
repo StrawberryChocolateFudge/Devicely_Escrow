@@ -5,9 +5,11 @@ import Web3 from "web3";
 import {
   escrowActions,
   findOrCreateActions,
+  historyPageActions,
   newEscrowActions,
 } from "./actions";
 import { countries, states } from "./data";
+import { getCurrentChainCurrency } from "./web3";
 
 export function getById(id: string) {
   return document.getElementById(id);
@@ -60,14 +62,38 @@ export async function getPage(page: PageState, args: any) {
       newEscrowActions();
       break;
     case PageState.Escrow:
-      render(EscrowPage(args.data, args.address, args.arbiter, args.nr), main);
+      render(
+        EscrowPage(args.data, args.address, args.arbiter, args.nr, args.fee),
+        main
+      );
       escrowActions(args.data, args.address, args.arbiter, args.nr);
       break;
     case PageState.History:
+      render(historyPage(args.data), main);
+      historyPageActions();
       break;
     default:
       break;
   }
+}
+
+function historyPage(ids) {
+  const reversedIds = [];
+  if (ids !== undefined) {
+    for (let i = ids.length - 1; i >= 0; i--) {
+      reversedIds.push(ids[i]);
+    }
+  }
+
+  return html`
+    <article class="maxwidth-500px center">
+      ${backButton()}
+      <hr />
+      ${ids === undefined
+        ? html`<h4 class="text-align-center">No History</h4>`
+        : reversedIds.map((id) => HistoryElement(`Job ${id}`, id))}
+    </article>
+  `;
 }
 
 function withdrawn(w) {
@@ -180,7 +206,7 @@ const backButton = () => html`
 `;
 
 // Action button toggles based on if I'm the arbiter, the employer or the worker
-export const EscrowPage = (job, address, arbiter, jobNr) => html`
+export const EscrowPage = (job, address, arbiter, jobNr, fee) => html`
   <article id="escrow-body" data-nr="${jobNr}" class="maxwidth-800px center">
     ${backButton()}
     <h3 class="text-align-center">Job</h3>
@@ -190,7 +216,7 @@ export const EscrowPage = (job, address, arbiter, jobNr) => html`
         job.worker
       )}${DisplayInTable(
         "Pay",
-        Web3.utils.fromWei(job.pay) + " ONE"
+        Web3.utils.fromWei(job.pay) + " " + getCurrentChainCurrency()
       )}${DisplayInTable("State", getStateText(job.state))}${DisplayInTable(
         "Withdrawn",
         withdrawn(job.withdrawn)
@@ -199,6 +225,10 @@ export const EscrowPage = (job, address, arbiter, jobNr) => html`
       ${DisplayInTable(
         "Jurisdiction Country",
         countries[job.jurisdictionCountry]
+      )}
+      ${DisplayInTable(
+        "Fee",
+        Web3.utils.fromWei(fee) + " " + getCurrentChainCurrency()
       )}
     </div>
     <div id="message-slot" class="text-align-center"></div>
@@ -212,6 +242,19 @@ export const EscrowPage = (job, address, arbiter, jobNr) => html`
     )}
   </article>
 `;
+
+const HistoryElement = (title, data) => html` <table>
+  <tbody>
+    <tr>
+      <td
+        class="cursor-pointer hover-light historyPageButtons"
+        data-nr="${data}"
+      >
+        ${title}
+      </td>
+    </tr>
+  </tbody>
+</table>`;
 
 const DisplayInTable = (title, data) => html` <table>
   <thead>
