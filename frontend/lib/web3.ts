@@ -9,11 +9,18 @@ declare global {
 }
 
 // Testnet address
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const contractAddress = "0xa540d69F0BC5F4365Dc912F8498Ae0123C9F3cf7";
 export const getCurrentChainCurrency = () => "ONE";
-const web3 = getWeb3();
+let web3;
+let contract;
 
-const contract = getContract();
+export async function setWeb3() {
+  web3 = getWeb3();
+}
+
+export function setContract() {
+  contract = getContract();
+}
 
 export async function getMyJobs(myaddress) {
   return await contract.methods.getMyJobs(myaddress).call({ from: myaddress });
@@ -141,22 +148,24 @@ export async function switchToHarmony(type) {
 
   const switched = await switch_to_Chain(hexchainId);
   if (!switched) {
-    await window.ethereum.request({
-      method: "wallet_addEthereumChain",
-      params: [
-        {
-          chainId: "0x" + Number(chainId).toString(16),
-          chainName,
-          nativeCurrency: {
-            name: "ONE",
-            symbol: "ONE",
-            decimals: 18,
+    await window.ethereum
+      .request({
+        method: "wallet_addEthereumChain",
+        params: [
+          {
+            chainId: "0x" + Number(chainId).toString(16),
+            chainName,
+            nativeCurrency: {
+              name: "ONE",
+              symbol: "ONE",
+              decimals: 18,
+            },
+            rpcUrls,
+            blockExplorerUrls,
           },
-          rpcUrls,
-          blockExplorerUrls,
-        },
-      ],
-    });
+        ],
+      })
+      .then(() => window.location.reload());
   }
 }
 
