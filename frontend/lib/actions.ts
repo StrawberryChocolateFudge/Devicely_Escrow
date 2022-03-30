@@ -24,10 +24,25 @@ import {
   getTerms,
   refund,
   requestAccounts,
+  setContract,
+  setWeb3,
+  switchToHarmony,
   withdrawPay,
 } from "./web3";
 
 const max800 = 800;
+
+export async function connectWalletAction() {
+  const bttn = getById("connect-wallet");
+  bttn.onclick = async () => {
+    setWeb3().then(async () => {
+      await switchToHarmony("Testnet").then(() => {
+        setContract();
+        getPage(PageState.FindOrCreate, {});
+      });
+    });
+  };
+}
 
 async function clickEscrowLink(el: HTMLElement) {
   const nr = el.dataset.nr;
