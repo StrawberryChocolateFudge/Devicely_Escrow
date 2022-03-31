@@ -36,7 +36,9 @@ export async function connectWalletAction() {
   const bttn = getById("connect-wallet");
   bttn.onclick = async () => {
     setWeb3().then(async () => {
-      await switchToHarmony("Testnet").then(() => {
+      await switchToHarmony("Testnet").then(async () => {
+        await requestAccounts();
+
         setContract();
         getPage(PageState.FindOrCreate, {});
       });
