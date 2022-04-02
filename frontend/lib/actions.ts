@@ -13,14 +13,14 @@ import {
 import {
   confirmDelivery,
   confirmRefund,
-  createJob,
+  createEscrow,
   depositPay,
   getAcceptedTerms,
   getAddress,
   getArbiter,
   getFee,
-  getJobByIndex,
-  getMyJobs,
+  getDetailByIndex,
+  getMyDetails,
   getTerms,
   refund,
   requestAccounts,
@@ -31,7 +31,6 @@ import {
 } from "./web3";
 
 const max800 = 800;
-
 export async function connectWalletAction() {
   const bttn = getById("connect-wallet");
   bttn.onclick = async () => {
@@ -48,17 +47,18 @@ export async function connectWalletAction() {
 
 async function clickEscrowLink(el: HTMLElement) {
   const nr = el.dataset.nr;
-  const jobEscrow = await getJobByIndex(nr);
+  const escrow = await getDetailByIndex(nr);
   const address = await getAddress();
   const arbiter = await getArbiter();
-  let fee = await getFee(jobEscrow.pay);
+  let fee = await getFee(escrow.pay);
   if (fee[1] !== undefined) {
-    fee = fee[1];
+    const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
+    fee = addedFees.toString();
   } else {
     fee = 0;
   }
 
-  getPage(PageState.Escrow, { data: jobEscrow, address, arbiter, nr, fee });
+  getPage(PageState.Escrow, { data: escrow, address, arbiter, nr, fee });
 }
 export async function historyPageActions() {
   const back = getById("backButton");
@@ -68,17 +68,18 @@ export async function historyPageActions() {
     const bttn = bttns[i] as HTMLElement;
     bttn.onclick = async function () {
       const nr = bttn.dataset.nr;
-      const jobEscrow = await getJobByIndex(nr);
+      const escrow = await getDetailByIndex(nr);
       const address = await getAddress();
       const arbiter = await getArbiter();
-      let fee = await getFee(jobEscrow.pay);
+      let fee = await getFee(escrow.pay);
       if (fee[1] !== undefined) {
-        fee = fee[1];
+        const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
+        fee = addedFees.toString();
       } else {
         fee = 0;
       }
 
-      getPage(PageState.Escrow, { data: jobEscrow, address, arbiter, nr, fee });
+      getPage(PageState.Escrow, { data: escrow, address, arbiter, nr, fee });
     };
   }
 
@@ -87,7 +88,7 @@ export async function historyPageActions() {
   };
 }
 
-export async function escrowActions(job, address, arbiter, nr) {
+export async function escrowActions(detail, address, arbiter, nr) {
   const back = getById("backButton");
   back.onclick = function () {
     getPage(PageState.FindOrCreate, {});
@@ -96,16 +97,17 @@ export async function escrowActions(job, address, arbiter, nr) {
     renderError("An Error Occured");
   };
   const onReceipt = async (receipt) => {
-    const jobEscrow = await getJobByIndex(nr);
-    let fee = await getFee(jobEscrow.pay);
+    const escrow = await getDetailByIndex(nr);
+    let fee = await getFee(escrow.pay);
     if (fee[1] !== undefined) {
-      fee = fee[1];
+      const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
+      fee = addedFees.toString();
     } else {
       fee = 0;
     }
 
     getPage(PageState.Escrow, {
-      data: jobEscrow,
+      data: escrow,
       address,
       arbiter,
       nr,
@@ -115,7 +117,7 @@ export async function escrowActions(job, address, arbiter, nr) {
   const accepted = await getAcceptedTerms(address);
 
   switch (address) {
-    case job.employer:
+    case detail.buyer:
       const amountEl = getById("payment-amount") as HTMLInputElement;
       const depositBttn = getById("deposit-payment");
       const deliveredBttn = getById("mark-delivered");
@@ -165,7 +167,7 @@ export async function escrowActions(job, address, arbiter, nr) {
         };
       }
       break;
-    case job.worker:
+    case detail.seller:
       const setRefundBttn = getById("refund-button");
       const claimPayment = getById("claim-payment");
 
@@ -227,30 +229,20 @@ export async function escrowActions(job, address, arbiter, nr) {
 }
 
 export async function newEscrowActions() {
-  const employerInput = getById("employer-address-input") as HTMLInputElement;
-  const workerInput = getById("worker-address-input") as HTMLInputElement;
-  const country = getById("country") as HTMLSelectElement;
-  const state = getById("state") as HTMLSelectElement;
-  const createBttn = getById("new-job-escrow");
+  const buyerInput = getById("buyer-address-input") as HTMLInputElement;
+  const sellerInput = getById("seller-address-input") as HTMLInputElement;
+  const createBttn = getById("new-escrow");
   const back = getById("backButton");
   back.onclick = function () {
     getPage(PageState.FindOrCreate, {});
   };
   createBttn.onclick = async function () {
-    if (employerInput.value.length === 0) {
-      renderError("Empty Employer Address Input");
+    if (buyerInput.value.length === 0) {
+      renderError("Empty buyer Address Input");
       return;
     }
-    if (workerInput.value.length === 0) {
-      renderError("Empty Worker Address Input");
-      return;
-    }
-    if (state.value === "null") {
-      renderError("Invalid State Input");
-      return;
-    }
-    if (country.value === "null") {
-      renderError("Invalid country Input");
+    if (sellerInput.value.length === 0) {
+      renderError("Empty seller Address Input");
       return;
     }
     renderError("");
@@ -260,8 +252,8 @@ export async function newEscrowActions() {
     };
     const onReceipt = (receipt) => {
       const events = receipt.events;
-      const JobCreated = events.JobCreated;
-      const returnValues = JobCreated.returnValues;
+      const escrowCreated = events.EscrowCreated;
+      const returnValues = escrowCreated.returnValues;
       createSuccess(`Got to Escrow ${returnValues[0]}`, returnValues[0]);
       clickEscrowLink(getById("go-to-escrow"));
     };
@@ -271,11 +263,9 @@ export async function newEscrowActions() {
     const accepted = await getAcceptedTerms(address);
 
     if (accepted) {
-      await createJob(
-        employerInput.value,
-        workerInput.value,
-        state.value,
-        country.value,
+      await createEscrow(
+        buyerInput.value,
+        sellerInput.value,
         address,
         onError,
         onReceipt
@@ -288,42 +278,44 @@ export async function newEscrowActions() {
 
 export async function findOrCreateActions() {
   // eslint-disable-next-line no-undef
-  const jobidInput = getById("jobid-input") as HTMLInputElement;
-  const findJob = getById("find-job");
+  const escrownrInput = getById("escrownr-input") as HTMLInputElement;
+  const findDetail = getById("find-escrow");
   const history = getById("historyPage");
-  const newJob = getById("new-job");
+  const newEscrow = getById("new-escrow");
   const termsEl = getById("terms-button") as HTMLAnchorElement;
   const address = await getAddress();
 
   const termsLink = await getTerms(address);
   termsEl.href = termsLink;
-  findJob.onclick = async function () {
+  findDetail.onclick = async function () {
     renderError("");
 
-    const valid = jobidInput.checkValidity();
+    const valid = escrownrInput.checkValidity();
     if (!valid) {
-      jobidInput.reportValidity();
+      escrownrInput.reportValidity();
     }
-    if (jobidInput.value.length === 0) {
+    if (escrownrInput.value.length === 0) {
       return;
     }
     await requestAccounts();
     try {
-      const job = await getJobByIndex(jobidInput.value);
+      const detail = await getDetailByIndex(escrownrInput.value);
 
       const address = await getAddress();
       const arbiter = await getArbiter();
-      let fee = await getFee(job.pay);
+      let fee = await getFee(detail.pay);
       if (fee[1] !== undefined) {
-        fee = fee[1];
+        const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
+        fee = addedFees.toString();
       } else {
         fee = 0;
       }
+
       getPage(PageState.Escrow, {
-        data: job,
+        data: detail,
         address,
         arbiter,
-        nr: jobidInput.value,
+        nr: escrownrInput.value,
         fee,
       });
     } catch (err) {
@@ -333,12 +325,12 @@ export async function findOrCreateActions() {
 
   history.onclick = async function () {
     const address = await getAddress();
-    const myJobs = await getMyJobs(address);
+    const myDetails = await getMyDetails(address);
     const arbiter = await getArbiter();
-    getPage(PageState.History, { data: myJobs, address, arbiter });
+    getPage(PageState.History, { data: myDetails, address, arbiter });
   };
 
-  newJob.onclick = async function () {
+  newEscrow.onclick = async function () {
     getPage(PageState.NewEscrow, {});
   };
 }
