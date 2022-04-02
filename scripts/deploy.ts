@@ -16,10 +16,15 @@ async function main() {
   // We get the contract to deploy
   const Escrow = await ethers.getContractFactory("Escrow");
 
-  // LIVE NETWORK ADDRESS
+  // // LIVE NETWORK ADDRESS
   const escrow = await Escrow.deploy(
     "0x9a7C2884496fE3BC7c4F08289cF0C6E477Ec31ac"
   );
+
+  // TEST NETWORK ADDRESS
+  // const escrow = await Escrow.deploy(
+  //   "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  // );
 
   await escrow.deployed();
 
