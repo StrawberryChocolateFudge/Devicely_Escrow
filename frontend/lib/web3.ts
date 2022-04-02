@@ -1,5 +1,8 @@
+/* eslint-disable node/no-missing-import */
 import Web3 from "web3";
 import escrow from "../../artifacts/contracts/Escrow.sol/Escrow.json";
+import { parseQueryString } from "./utils";
+import { renderError } from "./views";
 declare global {
   // eslint-disable-next-line no-unused-vars
   interface Window {
@@ -9,7 +12,19 @@ declare global {
 }
 
 // Testnet address
-const contractAddress = "0xa540d69F0BC5F4365Dc912F8498Ae0123C9F3cf7";
+const contractAddress = () => {
+  const queryStrings = parseQueryString(
+    window.location.search.replace("?", ""),
+    false
+  );
+
+  if (queryStrings.contract === undefined) {
+    renderError("Invalid contract address");
+  } else {
+    return queryStrings.contract;
+  }
+};
+
 export const getCurrentChainCurrency = () => "ONE";
 let web3;
 let contract;
@@ -22,8 +37,10 @@ export function setContract() {
   contract = getContract();
 }
 
-export async function getMyJobs(myaddress) {
-  return await contract.methods.getMyJobs(myaddress).call({ from: myaddress });
+export async function getMyDetails(myaddress) {
+  return await contract.methods
+    .getMyDetails(myaddress)
+    .call({ from: myaddress });
 }
 
 export async function getTerms(myaddress) {
@@ -82,29 +99,22 @@ export async function withdrawPay(jobNr, from, onError, onReceipt) {
     .on("receipt", onReceipt);
 }
 
-export async function createJob(
-  employer,
-  worker,
-  jursidictionState,
-  jurisdictionCountry,
-  from,
-  onError,
-  onReceipt
-) {
+export async function createEscrow(buyer, seller, from, onError, onReceipt) {
   await contract.methods
-    .createJob(employer, worker, jursidictionState, jurisdictionCountry)
+    .createEscrow(buyer, seller)
     .send({ from })
     .on("error", onError)
     .on("receipt", onReceipt);
 }
 
-export async function getJobByIndex(index: string) {
-  return await contract.methods.getJobByIndex(index).call({});
+export async function getDetailByIndex(index: string) {
+  return await contract.methods.getDetailByIndex(index).call({});
 }
 
 export function getContract() {
   const abi = JSON.parse(JSON.stringify(escrow)).abi;
-  return new web3.eth.Contract(abi, contractAddress);
+  const address = contractAddress();
+  return new web3.eth.Contract(abi, address);
 }
 
 export function web3Injected(): boolean {
