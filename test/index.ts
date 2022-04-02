@@ -5,58 +5,64 @@ import { ethers } from "hardhat";
 describe("Escrow", function () {
   it("Should create a new escrow and deliver it and another one gets refunded", async function () {
     // eslint-disable-next-line no-unused-vars
-    const [signer1, arbiter, worker, employer] = await ethers.getSigners();
+    const [signer1, arbiter, seller, buyer] = await ethers.getSigners();
     const Escrow = await ethers.getContractFactory("Escrow");
     const escrow = await Escrow.deploy(arbiter.address);
     await escrow.deployed();
 
     await escrow.setTerms("test", "test");
     await escrow.connect(arbiter).accept("test");
-    await escrow.connect(worker).accept("test");
-    await escrow.connect(employer).accept("test");
+    await escrow.connect(seller).accept("test");
+    await escrow.connect(buyer).accept("test");
     await escrow.accept("test");
-    await escrow.createJob(employer.address, worker.address, "WY", "US");
+    await escrow.createEscrow(buyer.address, seller.address);
 
-    expect(await escrow.getLastJobIndex()).to.equal(1);
-    let job = await escrow.getJobByIndex(1);
-    expect(await (await escrow.getMyJobs(worker.address)).length).to.equal(1);
-    expect(await (await escrow.getMyJobs(employer.address)).length).to.equal(1);
+    expect(await escrow.getLastDetailIndex()).to.equal(1);
+    let detail = await escrow.getDetailByIndex(1);
+    expect(await (await escrow.getMyDetails(seller.address)).length).to.equal(
+      1
+    );
+    expect(await (await escrow.getMyDetails(buyer.address)).length).to.equal(1);
 
-    await escrow.createJob(employer.address, worker.address, "WY", "US");
-    expect(await escrow.getLastJobIndex()).to.equal(2);
+    await escrow.createEscrow(buyer.address, seller.address);
+    expect(await escrow.getLastDetailIndex()).to.equal(2);
     const overrides = { value: parseEther("10") };
-    await escrow.connect(employer).depositPay(1, overrides);
+    await escrow.connect(buyer).depositPay(1, overrides);
 
-    job = await escrow.getJobByIndex(1);
-    expect(job.pay).to.equal(parseEther("10"));
-    const calculatedFee = await escrow.calculateFee(job.pay);
-    expect(calculatedFee[0]).to.equal(parseEther("9.8"));
+    detail = await escrow.getDetailByIndex(1);
+    expect(detail.pay).to.equal(parseEther("10"));
+    const calculatedFee = await escrow.calculateFee(detail.pay);
+    expect(calculatedFee[0]).to.equal(parseEther("9.7"));
     expect(calculatedFee[1]).to.equal(parseEther("0.2"));
+    expect(calculatedFee[2]).to.equal(parseEther("0.1"));
 
     // set it to delivered now and withdraw it
-    await escrow.connect(employer).confirmDelivery(1);
-    job = await escrow.getJobByIndex(1);
-    let workerBalance = await worker.getBalance();
-    expect(formatEther(workerBalance)).to.equal("9999.99992150984928275");
-    await escrow.connect(worker).withdrawPay(1);
-    workerBalance = await worker.getBalance();
-    expect(formatEther(workerBalance)).to.equal("10009.799844333576607406");
-    job = await escrow.getJobByIndex(1);
-    expect(job.withdrawn).to.equal(true);
+    await escrow.connect(buyer).confirmDelivery(1);
+    detail = await escrow.getDetailByIndex(1);
+    const sellerBalance1 = await seller.getBalance();
+    await escrow.connect(seller).withdrawPay(1);
+    const sellerBalance2 = await seller.getBalance();
+    expect(
+      parseFloat(formatEther(sellerBalance1)) <
+        parseFloat(formatEther(sellerBalance2))
+    );
+    detail = await escrow.getDetailByIndex(1);
+    expect(detail.withdrawn).to.equal(true);
 
     // I pay to the other , and refund it
-    await escrow.connect(employer).depositPay(2, overrides);
+    await escrow.connect(buyer).depositPay(2, overrides);
 
-    job = await escrow.getJobByIndex(2);
-    expect(job.pay).to.equal(parseEther("10"));
+    detail = await escrow.getDetailByIndex(2);
+    expect(detail.pay).to.equal(parseEther("10"));
 
     await escrow.connect(arbiter).confirmRefund(2);
-    job = await escrow.getJobByIndex(2);
-    expect(job.state).to.equal(3);
-    let balance = await employer.getBalance();
-    expect(formatEther(balance)).to.equal("9979.999645516907506417");
-    await escrow.connect(employer).refund(2);
-    balance = await employer.getBalance();
-    expect(formatEther(balance)).to.equal("9989.799573353614186841");
+    detail = await escrow.getDetailByIndex(2);
+    expect(detail.state).to.equal(3);
+    const balance1 = await buyer.getBalance();
+    await escrow.connect(buyer).refund(2);
+    const balance2 = await buyer.getBalance();
+    expect(
+      parseFloat(formatEther(balance1)) < parseFloat(formatEther(balance2))
+    );
   });
 });
