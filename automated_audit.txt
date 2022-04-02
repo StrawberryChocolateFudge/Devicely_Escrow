@@ -1,30 +1,24 @@
-Escrow.constructor(address)._arbiter (contracts/Escrow.sol#49) lacks a zero-check on :
-                - arbiter = address(_arbiter) (contracts/Escrow.sol#50)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#missing-zero-address-validation
-
-Reentrancy in Escrow.refund(uint256) (contracts/Escrow.sol#143-154):
+Reentrancy in Escrow.refund(uint256) (contracts/Escrow.sol#175-192):
         External calls:
-        - jobs[job].employer.sendValue(pay) (contracts/Escrow.sol#151)
-        - arbiter.sendValue(_fee_) (contracts/Escrow.sol#152)
+        - details[detail].buyer.sendValue(pay) (contracts/Escrow.sol#188)
+        - agent.sendValue(agentFee) (contracts/Escrow.sol#189)
+        - feeDAO.sendValue(daoFee) (contracts/Escrow.sol#190)
         Event emitted after the call(s):
-        - Refund(job,pay,_fee_) (contracts/Escrow.sol#153)
-Reentrancy in Escrow.withdrawPay(uint256) (contracts/Escrow.sol#130-141):
+        - Refund(detail,pay,agentFee,daoFee) (contracts/Escrow.sol#191)
+Reentrancy in Escrow.withdrawPay(uint256) (contracts/Escrow.sol#153-173):
         External calls:
-        - jobs[job].worker.sendValue(pay) (contracts/Escrow.sol#138)
-        - arbiter.sendValue(_fee_) (contracts/Escrow.sol#139)
+        - details[detail].seller.sendValue(pay) (contracts/Escrow.sol#169)
+        - agent.sendValue(agentFee) (contracts/Escrow.sol#170)
+        - feeDAO.sendValue(daoFee) (contracts/Escrow.sol#171)
         Event emitted after the call(s):
-        - Withdraw(job,pay,_fee_) (contracts/Escrow.sol#140)
+        - Withdraw(detail,pay,agentFee,daoFee) (contracts/Escrow.sol#172)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
 
 Address.verifyCallResult(bool,bytes,string) (node_modules/@openzeppelin/contracts/utils/Address.sol#201-221) uses assembly
         - INLINE ASM (node_modules/@openzeppelin/contracts/utils/Address.sol#213-216)
+console._sendLogPayload(bytes) (node_modules/hardhat/console.sol#7-14) uses assembly
+        - INLINE ASM (node_modules/hardhat/console.sol#10-13)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
-
-Escrow.withdrawPay(uint256) (contracts/Escrow.sol#130-141) compares to a boolean constant:
-        -require(bool,string)(jobs[job].withdrawn == false,Already withdrawn) (contracts/Escrow.sol#134)
-Escrow.refund(uint256) (contracts/Escrow.sol#143-154) compares to a boolean constant:
-        -require(bool,string)(jobs[job].withdrawn == false,Already withdrawn) (contracts/Escrow.sol#147)
-Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#boolean-equality
 
 Different versions of Solidity is used:
         - Version used: ['>=0.4.22<0.9.0', '^0.8.0', '^0.8.1']
@@ -33,6 +27,7 @@ Different versions of Solidity is used:
         - ^0.8.0 (node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol#4)
         - >=0.4.22<0.9.0 (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#2)
         - ^0.8.0 (contracts/Escrow.sol#2)
+        - >=0.4.22<0.9.0 (node_modules/hardhat/console.sol#2)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
 
 Pragma version^0.8.0 (node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol#4) allows old versions
@@ -40,6 +35,7 @@ Pragma version^0.8.1 (node_modules/@openzeppelin/contracts/utils/Address.sol#4) 
 Pragma version^0.8.0 (node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol#4) allows old versions
 Pragma version>=0.4.22<0.9.0 (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#2) is too complex
 Pragma version^0.8.0 (contracts/Escrow.sol#2) allows old versions
+Pragma version>=0.4.22<0.9.0 (node_modules/hardhat/console.sol#2) is too complex
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
 
 Low level call in Address.sendValue(address,uint256) (node_modules/@openzeppelin/contracts/utils/Address.sol#60-65):
@@ -53,5 +49,5 @@ Low level call in Address.functionDelegateCall(address,bytes,string) (node_modul
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
 
 Parameter SimpleTerms.acceptedTerms(address)._address (node_modules/@ricardianfabric/simpleterms/contracts/SimpleTerms.sol#61) is not in mixedCase
+Contract console (node_modules/hardhat/console.sol#4-1532) is not in CapWords
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
-. analyzed (5 contracts with 77 detectors), 17 result(s) found

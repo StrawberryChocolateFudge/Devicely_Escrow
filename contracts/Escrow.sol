@@ -4,15 +4,13 @@ import "@ricardianfabric/simpleterms/contracts/SimpleTerms.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-struct Job {
-    address payable employer;
-    address payable worker;
+struct Detail {
+    address payable buyer;
+    address payable seller;
     uint256 pay;
     State state;
     bool initialized;
     bool withdrawn;
-    string jurisdictionState;
-    string jurisdictionCountry;
 }
 
 enum State {
@@ -26,146 +24,189 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
     using SafeMath for uint256;
     using Address for address payable;
 
-    address payable private arbiter;
+    address payable private feeDAO;
+    address payable private agent;
     address private owner;
+    uint256 private constant DAOFEE = 100; // The fee is 1 percent, that goes to the FEEDAO
     uint256 private constant FEE = 200; // if fee is 200, it's a 2 percent fee
     uint256 private constant FEEBASE = 10000;
 
     uint256 public totalProcessed;
     uint256 public currentBalance;
 
-    mapping(uint256 => Job) private jobs;
-    uint256 private jobIndex;
+    mapping(uint256 => Detail) private details;
+    uint256 private detailIndex;
 
-    mapping(address => uint256[]) private myJobs;
+    mapping(address => uint256[]) private myDetails;
 
-    event JobCreated(uint256 jobIndex);
+    event EscrowCreated(uint256 detailIndex);
     event PaymentDeposited(uint256 to, uint256 amount);
-    event DeliveryConfirmed(uint256 job);
-    event RefundConfirmed(uint256 job);
-    event Withdraw(uint256 job, uint256 amount, uint256 fee);
-    event Refund(uint256 job, uint256 amount, uint256 fee);
+    event DeliveryConfirmed(uint256 detail);
+    event RefundConfirmed(uint256 detail);
+    event Withdraw(
+        uint256 detail,
+        uint256 amount,
+        uint256 agentFee,
+        uint256 daoFee
+    );
+    event Refund(
+        uint256 detail,
+        uint256 amount,
+        uint256 agentFee,
+        uint256 daoFee
+    );
 
-    constructor(address _arbiter) {
-        arbiter = payable(_arbiter);
+    constructor(address escrowAgent) {
+        require(escrowAgent != address(0), "Arbiter is zero address");
+        agent = payable(escrowAgent);
         owner = msg.sender;
+        // TODO: NEEDS TO BE THE FEEDAO ADDRESS IN THE RICARDIAN FABRIC DEPLOYABLE VERSION!!
+        feeDAO = payable(0x42F31395BF8e3687E90e00E559BEAAf2d485eB9d);
     }
 
-    function createJob(
-        address employer,
-        address worker,
-        string calldata jurisdictionState,
-        string calldata jurisdictionCountry
-    ) external checkAcceptance {
-        require(employer != worker, "Invalid addresses");
-        require(employer != address(0), "Invalid address");
-        require(worker != address(0), "Invalid adress");
-        Job memory job = Job({
-            employer: payable(employer),
-            worker: payable(worker),
+    function createEscrow(address buyer, address seller)
+        external
+        checkAcceptance
+    {
+        require(buyer != seller, "Invalid addresses");
+        require(buyer != address(0), "Invalid address");
+        require(seller != address(0), "Invalid adress");
+        Detail memory detail = Detail({
+            buyer: payable(buyer),
+            seller: payable(seller),
             pay: 0,
             state: State.awaiting_payment,
             initialized: true,
-            withdrawn: false,
-            jurisdictionState: jurisdictionState,
-            jurisdictionCountry: jurisdictionCountry
+            withdrawn: false
         });
 
-        jobIndex++;
-        jobs[jobIndex] = job;
-        myJobs[employer].push(jobIndex);
-        myJobs[worker].push(jobIndex);
-        emit JobCreated(jobIndex);
+        detailIndex++;
+        details[detailIndex] = detail;
+        myDetails[buyer].push(detailIndex);
+        myDetails[seller].push(detailIndex);
+        emit EscrowCreated(detailIndex);
     }
 
     function calculateFee(uint256 amount)
         public
         pure
-        returns (uint256, uint256)
+        returns (
+            uint256,
+            uint256,
+            uint256
+        )
     {
-        uint256 fee_ = (amount.mul(FEE)).div(FEEBASE);
-        return (amount.sub(fee_), fee_);
+        uint256 agentFee = (amount.mul(FEE)).div(FEEBASE);
+        uint256 daoFee = (amount.mul(DAOFEE)).div(FEEBASE);
+        uint256 result = amount.sub(agentFee);
+        result = result.sub(daoFee);
+        return (result, agentFee, daoFee);
     }
 
-    function getJob(uint256 at) external view returns (Job memory) {
-        return jobs[at];
+    function getDetails(uint256 at) external view returns (Detail memory) {
+        return details[at];
     }
 
     function depositPay(uint256 to) external payable checkAcceptance {
-        require(jobs[to].initialized, "The Job doesn't exist");
-        require(jobs[to].state == State.awaiting_payment, "Invalid Job State");
-        jobs[to].pay = msg.value;
+        require(details[to].initialized, "The Escrow doesn't exist");
+        require(
+            details[to].state == State.awaiting_payment,
+            "Invalid Escrow State"
+        );
+        details[to].pay = msg.value;
         totalProcessed += msg.value;
         currentBalance += msg.value;
-        jobs[to].state = State.awaiting_delivery;
+        details[to].state = State.awaiting_delivery;
         emit PaymentDeposited(to, msg.value);
     }
 
-    function confirmDelivery(uint256 job) external checkAcceptance {
-        require(jobs[job].initialized, "The job doesn't exist");
+    function confirmDelivery(uint256 detail) external checkAcceptance {
+        require(details[detail].initialized, "The escrow doesn't exist");
         require(
-            jobs[job].state == State.awaiting_delivery,
-            "Invalid Job State"
+            details[detail].state == State.awaiting_delivery,
+            "Invalid Escrow State"
         );
         require(
-            jobs[job].employer == msg.sender || msg.sender == arbiter,
+            details[detail].buyer == msg.sender || msg.sender == agent,
             "Invalid address"
         );
 
-        jobs[job].state = State.delivered;
-        emit DeliveryConfirmed(job);
+        details[detail].state = State.delivered;
+        emit DeliveryConfirmed(detail);
     }
 
     function confirmRefund(uint256 to) external checkAcceptance {
-        require(jobs[to].initialized, "The job doesn't exist");
-        require(jobs[to].state == State.awaiting_delivery, "Invalid Job State");
+        require(details[to].initialized, "The escrow doesn't exist");
         require(
-            jobs[to].worker == msg.sender || msg.sender == arbiter,
+            details[to].state == State.awaiting_delivery,
+            "Invalid Escrow State"
+        );
+        require(
+            details[to].seller == msg.sender || msg.sender == agent,
             "Invalid address"
         );
-        jobs[to].state = State.refunded;
+        details[to].state = State.refunded;
         emit RefundConfirmed(to);
     }
 
-    function withdrawPay(uint256 job) external nonReentrant checkAcceptance {
-        require(jobs[job].initialized, "The job doesn't exist");
-        require(jobs[job].state == State.delivered, "Invalid Job State");
-        require(jobs[job].worker == msg.sender, "Only worker can withdraw");
-        require(jobs[job].withdrawn == false, "Already withdrawn");
-        currentBalance -= jobs[job].pay;
-        (uint256 pay, uint256 _fee_) = calculateFee(jobs[job].pay);
-        jobs[job].withdrawn = true;
-        jobs[job].worker.sendValue(pay);
-        arbiter.sendValue(_fee_);
-        emit Withdraw(job, pay, _fee_);
+    function withdrawPay(uint256 detail) external nonReentrant checkAcceptance {
+        require(details[detail].initialized, "The escrow doesn't exist");
+        require(
+            details[detail].state == State.delivered,
+            "Invalid Escrow State"
+        );
+        require(
+            details[detail].seller == msg.sender,
+            "Only seller can withdraw"
+        );
+        require(!details[detail].withdrawn, "Already withdrawn");
+        currentBalance -= details[detail].pay;
+        (uint256 pay, uint256 agentFee, uint256 daoFee) = calculateFee(
+            details[detail].pay
+        );
+        details[detail].withdrawn = true;
+        details[detail].seller.sendValue(pay);
+        agent.sendValue(agentFee);
+        feeDAO.sendValue(daoFee);
+        emit Withdraw(detail, pay, agentFee, daoFee);
     }
 
-    function refund(uint256 job) external nonReentrant checkAcceptance {
-        require(jobs[job].initialized, "The job doesn't exist");
-        require(jobs[job].state == State.refunded, "Invalid Job State");
-        require(jobs[job].employer == msg.sender, "Only employer can withdraw");
-        require(jobs[job].withdrawn == false, "Already withdrawn");
-        currentBalance -= jobs[job].pay;
-        (uint256 pay, uint256 _fee_) = calculateFee(jobs[job].pay);
-        jobs[job].withdrawn = true;
-        jobs[job].employer.sendValue(pay);
-        arbiter.sendValue(_fee_);
-        emit Refund(job, pay, _fee_);
+    function refund(uint256 detail) external nonReentrant checkAcceptance {
+        require(details[detail].initialized, "The Escrow doesn't exist");
+        require(
+            details[detail].state == State.refunded,
+            "Invalid Escrow State"
+        );
+        require(details[detail].buyer == msg.sender, "Only buyer can withdraw");
+        require(!details[detail].withdrawn, "Already withdrawn");
+        currentBalance -= details[detail].pay;
+        (uint256 pay, uint256 agentFee, uint256 daoFee) = calculateFee(
+            details[detail].pay
+        );
+        details[detail].withdrawn = true;
+        details[detail].buyer.sendValue(pay);
+        agent.sendValue(agentFee);
+        feeDAO.sendValue(daoFee);
+        emit Refund(detail, pay, agentFee, daoFee);
     }
 
-    function getLastJobIndex() external view returns (uint256) {
-        return jobIndex;
+    function getLastDetailIndex() external view returns (uint256) {
+        return detailIndex;
     }
 
-    function getJobByIndex(uint256 index) external view returns (Job memory) {
-        return jobs[index];
+    function getDetailByIndex(uint256 index)
+        external
+        view
+        returns (Detail memory)
+    {
+        return details[index];
     }
 
-    function getMyJobs(address my) external view returns (uint256[] memory) {
-        return myJobs[my];
+    function getMyDetails(address my) external view returns (uint256[] memory) {
+        return myDetails[my];
     }
 
-    function getJobsPaginated(
+    function getDetailsPaginated(
         uint256 first,
         uint256 second,
         uint256 third,
@@ -175,23 +216,23 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
         external
         view
         returns (
-            Job memory,
-            Job memory,
-            Job memory,
-            Job memory,
-            Job memory
+            Detail memory,
+            Detail memory,
+            Detail memory,
+            Detail memory,
+            Detail memory
         )
     {
         return (
-            jobs[first],
-            jobs[second],
-            jobs[third],
-            jobs[fourth],
-            jobs[fifth]
+            details[first],
+            details[second],
+            details[third],
+            details[fourth],
+            details[fifth]
         );
     }
 
     function getArbiter() external view returns (address) {
-        return arbiter;
+        return agent;
     }
 }
