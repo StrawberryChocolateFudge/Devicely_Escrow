@@ -18,7 +18,10 @@ const contractAddress = () => {
     false
   );
 
-  if (queryStrings.contract === undefined) {
+  if (
+    queryStrings.contract === undefined ||
+    queryStrings.contract.length! > 0
+  ) {
     renderError("Invalid contract address");
   } else {
     return queryStrings.contract;
