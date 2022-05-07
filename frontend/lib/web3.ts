@@ -1,7 +1,6 @@
 /* eslint-disable node/no-missing-import */
 import Web3 from "web3";
 import escrow from "../../artifacts/contracts/Escrow.sol/Escrow.json";
-import { parseQueryString } from "./utils";
 import { renderError } from "./views";
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -13,18 +12,13 @@ declare global {
 
 // Testnet address
 const contractAddress = () => {
-  const queryStrings = parseQueryString(
-    window.location.search.replace("?", ""),
-    false
-  );
+  const body = document.getElementsByTagName("body");
 
-  if (
-    queryStrings.contract === undefined ||
-    queryStrings.contract.length! > 0
-  ) {
+  const contract = body[0].dataset.contract;
+  if (contract === undefined || contract.length! > 0) {
     renderError("Invalid contract address");
   } else {
-    return queryStrings.contract;
+    return contract;
   }
 };
 

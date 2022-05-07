@@ -52,10 +52,12 @@ export function renderError(err: string) {
 
 export async function getPage(page: PageState, args: any) {
   const main = getById("main");
+  const body = document.getElementsByTagName("body");
+  const title = body[0].dataset.title;
 
   switch (page) {
     case PageState.FindOrCreate:
-      render(findOrCreate, main);
+      render(findOrCreate(title), main);
       findOrCreateActions();
       break;
     case PageState.NewEscrow:
@@ -74,7 +76,7 @@ export async function getPage(page: PageState, args: any) {
       historyPageActions();
       break;
     case PageState.connectWallet:
-      render(ConnectWallet(), main);
+      render(ConnectWallet(title), main);
       connectWalletAction();
       break;
     default:
@@ -289,9 +291,9 @@ export const NewEscrow = html` <article class="maxwidth-500px center">
   </div>
 </article>`;
 
-export const findOrCreate = html`
+export const findOrCreate = (title: string) => html`
   <article class="maxwidth-500px center">
-    <h3 class="text-align-center">Find your Escrow!</h3>
+    <h4 class="text-align-center">Find your Escrow!</h4>
     <input
       class="width-200 center maxwidth-200"
       type="number"
@@ -319,9 +321,10 @@ export const History = () => html` <article class="maxwidth-500px center">
   <h3 class="text-align-center">History</h3>
 </article>`;
 
-export const ConnectWallet = () =>
+export const ConnectWallet = (title: string) =>
   html`<article class="maxwidth-500px center">
-    <h1 class="text-align-center">Escrow Service</h1>
+    <h1 class="text-align-center">${title}</h1>
+    <h4 class="text-align-center">Escrow Service</h4>
     <div id="message-slot" class="text-align-center"></div>
     <button id="connect-wallet" class="maxwidth-200 center">
       Connect Your Wallet
