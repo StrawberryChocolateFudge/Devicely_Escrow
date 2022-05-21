@@ -1,6 +1,6 @@
 {
   "name": "hardhat-project",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
@@ -36,8 +36,7 @@
   },
   "scripts": {
     "dev": "parcel frontend/index.html",
-    "build": "parcel build frontend/index.html",
-    "inline": "cat dist/index.html | inline-source --root dist > dist/bundle.html"
+    "build": "parcel build frontend/index.html"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.5.0",
