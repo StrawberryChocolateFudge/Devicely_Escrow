@@ -15,7 +15,7 @@ const contractAddress = () => {
   const body = document.getElementsByTagName("body");
 
   const contract = body[0].dataset.contract;
-  if (contract === undefined || contract.length! > 0) {
+  if (contract === undefined || contract.length === 0) {
     renderError("Invalid contract address");
   } else {
     return contract;
@@ -23,16 +23,8 @@ const contractAddress = () => {
 };
 
 export const getCurrentChainCurrency = () => "ONE";
-let web3;
-let contract;
-
-export async function setWeb3() {
-  web3 = getWeb3();
-}
-
-export function setContract() {
-  contract = getContract();
-}
+const web3 = getWeb3();
+const contract = getContract();
 
 export async function getMyDetails(myaddress) {
   return await contract.methods
