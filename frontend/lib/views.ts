@@ -1,6 +1,6 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable no-unused-vars */
-import { html, render } from "lit-html";
+import { html, nothing, render } from "lit-html";
 import Web3 from "web3";
 import {
   connectWalletAction,
@@ -61,8 +61,8 @@ export async function getPage(page: PageState, args: any) {
       findOrCreateActions();
       break;
     case PageState.NewEscrow:
-      render(NewEscrow, main);
-      newEscrowActions();
+      render(NewEscrow(args.data.arbiterCalls, args.data.deprecated), main);
+      newEscrowActions(args.data.arbiterCalls);
       break;
     case PageState.Escrow:
       render(
@@ -269,7 +269,9 @@ const DisplayInTable = (title, data) => html` <table>
   </tbody>
 </table>`;
 
-export const NewEscrow = html` <article class="maxwidth-500px center">
+export const NewEscrow = (arbiterCalls, deprecated) => html` <article
+  class="maxwidth-500px center"
+>
   ${backButton()}
   <h3 class="text-align-center">Create new Escrow</h3>
   <input
@@ -287,8 +289,20 @@ export const NewEscrow = html` <article class="maxwidth-500px center">
 
   <div id="message-slot" class="text-align-center"></div>
   <div id="new-escrow-button-container">
-    <button id="new-escrow" class="width-200 center">Create new</button>
+    <button id="new-escrow" class="width-200 center" ?disabled=${deprecated}>
+      Create new
+    </button>
   </div>
+  ${arbiterCalls
+    ? html`<hr />
+        <button
+          class="width-200 center"
+          id="deprecate-escrow"
+          ?disabled=${deprecated}
+        >
+          Deprecate Escrow Service!
+        </button>`
+    : nothing}
 </article>`;
 
 export const findOrCreate = (title: string) => html`
