@@ -7,7 +7,7 @@ describe("Escrow", function () {
     // eslint-disable-next-line no-unused-vars
     const [signer1, arbiter, seller, buyer] = await ethers.getSigners();
     const Escrow = await ethers.getContractFactory("Escrow");
-    const escrow = await Escrow.deploy(arbiter.address);
+    const escrow = await Escrow.connect(arbiter).deploy();
     await escrow.deployed();
 
     await escrow.setTerms("test", "test");
@@ -64,5 +64,21 @@ describe("Escrow", function () {
     expect(
       parseFloat(formatEther(balance1)) < parseFloat(formatEther(balance2))
     );
+    let deprecationFailed = false;
+    try {
+      await escrow.connect(buyer).deprecateEscrow();
+    } catch (err) {
+      deprecationFailed = true;
+    }
+    expect(deprecationFailed).to.equal(true);
+
+    await escrow.connect(arbiter).deprecateEscrow();
+    let escrowDeprecated = false;
+    try {
+      await escrow.createEscrow(buyer.address, seller.address);
+    } catch (err) {
+      escrowDeprecated = true;
+    }
+    expect(escrowDeprecated).to.equal(true);
   });
 });
