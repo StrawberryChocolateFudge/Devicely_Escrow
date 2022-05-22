@@ -26,6 +26,8 @@ import {
   requestAccounts,
   switchToHarmony,
   withdrawPay,
+  getDeprecated,
+  deprecateEscrow,
 } from "./web3";
 
 const max800 = 800;
@@ -35,7 +37,6 @@ export async function connectWalletAction() {
     await switchToHarmony("Testnet").then(async () => {
       await requestAccounts();
 
-      // setContract();
       getPage(PageState.FindOrCreate, {});
     });
   };
@@ -224,11 +225,27 @@ export async function escrowActions(detail, address, arbiter, nr) {
   }
 }
 
-export async function newEscrowActions() {
+export async function newEscrowActions(arbiterCalls) {
   const buyerInput = getById("buyer-address-input") as HTMLInputElement;
   const sellerInput = getById("seller-address-input") as HTMLInputElement;
   const createBttn = getById("new-escrow");
   const back = getById("backButton");
+
+  if (arbiterCalls) {
+    const deprecateEscrowBtn = getById("deprecate-escrow");
+    deprecateEscrowBtn.onclick = async function () {
+      const onError = (err, receipt) => {
+        renderError("An Error occured");
+      };
+      const onReceipt = (receipt) => {
+        newEscrowPage();
+      };
+      const address = await getAddress();
+
+      await deprecateEscrow(address, onError, onReceipt);
+    };
+  }
+
   back.onclick = function () {
     getPage(PageState.FindOrCreate, {});
   };
@@ -327,6 +344,15 @@ export async function findOrCreateActions() {
   };
 
   newEscrow.onclick = async function () {
-    getPage(PageState.NewEscrow, {});
+    newEscrowPage();
   };
+}
+
+async function newEscrowPage() {
+  const arbiter = await getArbiter();
+  const address = await getAddress();
+  const deprecated = await getDeprecated();
+  getPage(PageState.NewEscrow, {
+    data: { arbiterCalls: address === arbiter, deprecated },
+  });
 }
