@@ -26,7 +26,7 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
 
     address payable private feeDAO;
     address payable private agent;
-    address private owner;
+    bool private deprecated = false;
     uint256 private constant DAOFEE = 100; // The fee is 1 percent, that goes to the FEEDAO
     uint256 private constant FEE = 200; // if fee is 200, it's a 2 percent fee
     uint256 private constant FEEBASE = 10000;
@@ -56,12 +56,10 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
         uint256 daoFee
     );
 
-    constructor(address escrowAgent) {
-        require(escrowAgent != address(0), "Arbiter is zero address");
-        agent = payable(escrowAgent);
-        owner = msg.sender;
-        // TODO: NEEDS TO BE THE FEEDAO ADDRESS IN THE RICARDIAN FABRIC DEPLOYABLE VERSION!!
-        feeDAO = payable(0x42F31395BF8e3687E90e00E559BEAAf2d485eB9d);
+    constructor() {
+        agent = payable(msg.sender);
+        //THE FEEDAO ADDRESS IS POINTING TO HARMONY TESTNET
+        feeDAO = payable(0xdBB2543b6Ef7e8480b51bE37f87fDd099b14cf86);
     }
 
     function createEscrow(address buyer, address seller)
@@ -71,6 +69,7 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
         require(buyer != seller, "Invalid addresses");
         require(buyer != address(0), "Invalid address");
         require(seller != address(0), "Invalid adress");
+        require(deprecated == false, "Contract deprecated!");
         Detail memory detail = Detail({
             buyer: payable(buyer),
             seller: payable(seller),
@@ -234,5 +233,14 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
 
     function getArbiter() external view returns (address) {
         return agent;
+    }
+
+    function deprecateEscrow() external {
+        require(msg.sender == agent, "Only the agent can call this.");
+        deprecated = true;
+    }
+
+    function isDeprecated() external view returns (bool) {
+        return deprecated;
     }
 }
