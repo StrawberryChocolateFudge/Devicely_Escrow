@@ -48,10 +48,22 @@ export async function getFee(amount) {
   return await contract.methods.calculateFee(amount).call({});
 }
 
+export async function getDeprecated() {
+  return await contract.methods.isDeprecated().call({});
+}
+
 export async function depositPay(to, amount, from, onError, onReceipt) {
   await contract.methods
     .depositPay(to)
     .send({ from, value: Web3.utils.toWei(amount) })
+    .on("error", onError)
+    .on("receipt", onReceipt);
+}
+
+export async function deprecateEscrow(from, onError, onReceipt) {
+  await contract.methods
+    .deprecateEscrow()
+    .send({ from })
     .on("error", onError)
     .on("receipt", onReceipt);
 }
