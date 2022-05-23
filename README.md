@@ -3,13 +3,30 @@
 This full stack escrow application helps facilitate payments between buyers and sellers
 It was created with Hardhat ❤️ Parcel.
 
-0.0.2:
-This version has removed juristiction and had refactored contrac.
-The contract address is passed in via a query parameter ?contract=CONTRACTADDRESS
-This contract can only be deployed on Harmony Testnet
-This current version is ricardian fabric pre-mainnet so it send daoFees to my address instead of the DAO
-This is set to harmony testnet
+The front end allows maximum 800USD to be escrowed at once with 2% fee. 1% goes to the feeDAO and 1% goes to the escrow agent
 
-0.0.1: (This version contains juristiction state and country)
-TESTNET ADDRESS: 0xa540d69F0BC5F4365Dc912F8498Ae0123C9F3cf7
-App deployed to : https://6grxxhuokmnrc46p2usyebjtkjnj7lutckhmpygwtkawzotamysa.arweave.net/8aN7no5TGxFzz9UlggUzUlqfrpMSjsfg1pqBbLpgZiQ
+### Deps
+
+Legal terms are uploaded to :
+
+https://arweave.net/vdcwioLjLChVbuCnH0ffiZV0QQf6OuhijYXw734BQIQ
+
+Pico.css is uploaded to:
+https://kdbjcp4q4ltu6f6wixfm47mqbv3xqrr2cavxveicrdtnee5q.arweave.net/UMKRP5Di_508X1kX-Kzn2QDXd4RjoQK3qRAojm0hOw4
+
+0.0.4 version deployed to :
+
+    Dependency changed
+    The latest app is uploaded to (Testnet):
+    https://on2btcbgzkkhsjbhdhyt4u2mpn7q7zv2vi42k7lzhar4gypr227q.arweave.net/c3QZiCbKlHkkJxnxPlNMe38P5rqqOaV9eTgjw2Hx1r8
+
+0.0.3 :
+
+    Latest css deps are uploaded to :
+    https://6kzlolqc7fhgzqilq2phb5g5owagc7cwd2ggnkqekhtmr6c7.arweave.net/8rK3LgL5TmzBC4aecPTddYBhfFYejGaq-BFHmyPhf_Q
+
+    Latest JS dep (Testnet) is uploaded to :
+    https://adnqonepmeqd3fy4vqzlviplintumxcltolujfnegeehz4zn.arweave.net/ANsHNI9hID2XHKw-yuq-HrQ2dGXEubl0SVpDEIfPMtE
+
+    Latest App (Testnet) is uploaded to :
+    https://z5wwleb4lao4oeuyphvtekmna5ou2nwjc7ibbu2dk43zbjuljvca.arweave.net/z21lkDxYHccSmHnrMimNB11NNskX0BDTQ1c3kKaLTUQ
