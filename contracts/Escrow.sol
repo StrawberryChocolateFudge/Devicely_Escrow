@@ -27,9 +27,9 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
     address payable private feeDAO;
     address payable private agent;
     bool private deprecated = false;
-    uint256 private constant DAOFEE = 100; // The fee is 1 percent, that goes to the FEEDAO
-    uint256 private constant FEE = 200; // if fee is 200, it's a 2 percent fee
-    uint256 private constant FEEBASE = 10000;
+    uint256 private constant DAOFEE = 100; // 1 percent vee goes to the FEEDAO
+    uint256 private constant FEE = 200; // if fee is 200, it's a 2 percent fee on all together
+    uint256 private constant FEEBASE = 10000; // Fee base is used for calculating the fee
 
     uint256 public totalProcessed;
     uint256 public currentBalance;
