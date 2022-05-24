@@ -283,13 +283,19 @@ export async function newEscrowActions(arbiterCalls) {
     if (accepted) {
       hideButton(back, "hide");
       hideButton(createBttn, "hide");
-      await createEscrow(
-        buyerInput.value,
-        sellerInput.value,
-        address,
-        onError,
-        onReceipt
-      );
+      try {
+        await createEscrow(
+          buyerInput.value,
+          sellerInput.value,
+          address,
+          onError,
+          onReceipt
+        );
+      } catch (err) {
+        renderError(err.message);
+        hideButton(back, "show");
+        hideButton(createBttn, "show");
+      }
     } else {
       renderError("You need to accept the terms first!");
     }
