@@ -102,6 +102,13 @@ function historyPage(ids) {
     </article>
   `;
 }
+export function hideButton(el, show) {
+  if (show === "show") {
+    el.style.display = "block";
+  } else if (show === "hide") {
+    el.style.display = "none";
+  }
+}
 
 function withdrawn(w) {
   return w === true ? "YES" : "NO";
@@ -300,7 +307,7 @@ export const NewEscrow = (arbiterCalls, deprecated) => html` <article
           id="deprecate-escrow"
           ?disabled=${deprecated}
         >
-          Deprecate Escrow Service!
+          Disable escrow
         </button>`
     : nothing}
 </article>`;

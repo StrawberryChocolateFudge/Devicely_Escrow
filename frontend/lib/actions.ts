@@ -7,6 +7,7 @@ import {
   createSuccess,
   getById,
   getPage,
+  hideButton,
   PageState,
   renderError,
 } from "./views";
@@ -262,11 +263,15 @@ export async function newEscrowActions(arbiterCalls) {
     // eslint-disable-next-line node/handle-callback-err
     const onError = (err, receipt) => {
       renderError("An Error Occured");
+      hideButton(back, "show");
+      hideButton(createBttn, "show");
     };
     const onReceipt = (receipt) => {
       const events = receipt.events;
       const escrowCreated = events.EscrowCreated;
       const returnValues = escrowCreated.returnValues;
+      hideButton(back, "show");
+      hideButton(createBttn, "show");
       createSuccess(`Got to Escrow ${returnValues[0]}`, returnValues[0]);
       clickEscrowLink(getById("go-to-escrow"));
     };
@@ -276,6 +281,8 @@ export async function newEscrowActions(arbiterCalls) {
     const accepted = await getAcceptedTerms(address);
 
     if (accepted) {
+      hideButton(back, "hide");
+      hideButton(createBttn, "hide");
       await createEscrow(
         buyerInput.value,
         sellerInput.value,
