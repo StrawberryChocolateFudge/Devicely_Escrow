@@ -35,7 +35,7 @@ const max800 = 800;
 export async function connectWalletAction() {
   const bttn = getById("connect-wallet");
   bttn.onclick = async () => {
-    await switchToHarmony("Testnet").then(async () => {
+    await switchToHarmony("Mainnet").then(async () => {
       await requestAccounts();
 
       getPage(PageState.FindOrCreate, {});
