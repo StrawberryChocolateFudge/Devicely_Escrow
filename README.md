@@ -14,11 +14,15 @@ https://arweave.net/vdcwioLjLChVbuCnH0ffiZV0QQf6OuhijYXw734BQIQ
 Pico.css is uploaded to:
 https://kdbjcp4q4ltu6f6wixfm47mqbv3xqrr2cavxveicrdtnee5q.arweave.net/UMKRP5Di_508X1kX-Kzn2QDXd4RjoQK3qRAojm0hOw4
 
+0.0.5 version (MAINNET) deployed to:
+
+    https://arweave.net/pYAyQaoSPwoABWRF3ed-6TbGydR8o3OQ1pkiwStJzyc
+
 0.0.4 version deployed to :
 
     Dependency changed
     The latest app is uploaded to (Testnet):
-    https://on2btcbgzkkhsjbhdhyt4u2mpn7q7zv2vi42k7lzhar4gypr227q.arweave.net/c3QZiCbKlHkkJxnxPlNMe38P5rqqOaV9eTgjw2Hx1r8
+    https://arweave.net/b5skmIDAelngKM6HNbyz-r1QMY03tmlajbiirdIHdPs
 
 0.0.3 :
 
