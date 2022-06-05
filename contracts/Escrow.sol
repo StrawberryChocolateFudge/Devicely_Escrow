@@ -58,7 +58,7 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
 
     constructor() {
         agent = payable(msg.sender);
-        //THE FEEDAO ADDRESS IS POINTING TO HARMONY TESTNET
+        //THE FEEDAO ADDRESS IS POINTING TO HARMONY MAINNET
         feeDAO = payable(0xdBB2543b6Ef7e8480b51bE37f87fDd099b14cf86);
     }
 
