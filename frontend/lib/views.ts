@@ -328,8 +328,6 @@ export const findOrCreate = (title: string) => html`
       <a class="cursor-pointer" id="historyPage">History</a>
     </div>
     <hr />
-    <h4 class="text-align-center">Don't have an Escrow?</h4>
-    <button id="new-escrow" class="width-200 center">Create new</button>
     <div class="text-align-center">
       <a
         class="cursor-pointer"
