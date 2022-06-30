@@ -3,6 +3,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable node/no-missing-import */
 import { fetchONEUSDPrice } from "./fetch";
+import { parseQueryString } from "./utils";
 import {
   createSuccess,
   getById,
@@ -25,20 +26,26 @@ import {
   getTerms,
   refund,
   requestAccounts,
-  switchToHarmony,
   withdrawPay,
   getDeprecated,
   deprecateEscrow,
+  switchToRopsten,
 } from "./web3";
 
 const max800 = 800;
 export async function connectWalletAction() {
   const bttn = getById("connect-wallet");
   bttn.onclick = async () => {
-    await switchToHarmony("Mainnet").then(async () => {
+    renderError("");
+    await switchToRopsten().then(async () => {
       await requestAccounts();
 
-      getPage(PageState.FindOrCreate, {});
+      const query = parseQueryString(location.search.replace("?", ""), false);
+      if (!isNaN(parseInt(query.escrow))) {
+        openEscrow(query.escrow);
+      } else {
+        renderError("Invalid Escrow");
+      }
     });
   };
 }
@@ -307,7 +314,6 @@ export async function findOrCreateActions() {
   const escrownrInput = getById("escrownr-input") as HTMLInputElement;
   const findDetail = getById("find-escrow");
   const history = getById("historyPage");
-  const newEscrow = getById("new-escrow");
   const termsEl = getById("terms-button") as HTMLAnchorElement;
   const address = await getAddress();
 
@@ -331,8 +337,7 @@ export async function findOrCreateActions() {
       const arbiter = await getArbiter();
       let fee = await getFee(detail.pay);
       if (fee[1] !== undefined) {
-        const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
-        fee = addedFees.toString();
+        fee = fee[1];
       } else {
         fee = 0;
       }
@@ -355,10 +360,32 @@ export async function findOrCreateActions() {
     const arbiter = await getArbiter();
     getPage(PageState.History, { data: myDetails, address, arbiter });
   };
+}
 
-  newEscrow.onclick = async function () {
-    newEscrowPage();
-  };
+export async function openEscrow(nr) {
+  await requestAccounts();
+  try {
+    const detail = await getDetailByIndex(nr);
+
+    const address = await getAddress();
+    const arbiter = await getArbiter();
+    let fee = await getFee(detail.pay);
+    if (fee[1] !== undefined) {
+      fee = fee[1];
+    } else {
+      fee = 0;
+    }
+
+    getPage(PageState.Escrow, {
+      data: detail,
+      address,
+      arbiter,
+      nr,
+      fee,
+    });
+  } catch (err) {
+    renderError(err);
+  }
 }
 
 async function newEscrowPage() {
