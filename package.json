@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-project",
+  "name": "devicely_escrow",
   "version": "0.0.5",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
