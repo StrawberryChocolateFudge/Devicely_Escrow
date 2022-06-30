@@ -144,6 +144,11 @@ export async function getAddress() {
   return accounts[0];
 }
 
+export async function switchToRopsten() {
+  const hexchainId = "0x" + Number(3).toString(16);
+  await switch_to_Chain(hexchainId);
+}
+
 export async function switchToHarmony(type) {
   const chainName =
     type === "Mainnet" ? "Harmony Mainnet Shard 0" : "Harmony Testnet Shard 0";
