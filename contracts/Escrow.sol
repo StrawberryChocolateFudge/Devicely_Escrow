@@ -4,6 +4,7 @@ import "@ricardianfabric/simpleterms/contracts/SimpleTerms.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+
 struct Detail {
     address payable buyer;
     address payable seller;
@@ -24,10 +25,8 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
     using SafeMath for uint256;
     using Address for address payable;
 
-    address payable private feeDAO;
     address payable private agent;
     bool private deprecated = false;
-    uint256 private constant DAOFEE = 100; // 1 percent vee goes to the FEEDAO
     uint256 private constant FEE = 200; // if fee is 200, it's a 2 percent fee on all together
     uint256 private constant FEEBASE = 10000; // Fee base is used for calculating the fee
 
@@ -43,23 +42,11 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
     event PaymentDeposited(uint256 to, uint256 amount);
     event DeliveryConfirmed(uint256 detail);
     event RefundConfirmed(uint256 detail);
-    event Withdraw(
-        uint256 detail,
-        uint256 amount,
-        uint256 agentFee,
-        uint256 daoFee
-    );
-    event Refund(
-        uint256 detail,
-        uint256 amount,
-        uint256 agentFee,
-        uint256 daoFee
-    );
+    event Withdraw(uint256 detail, uint256 amount, uint256 agentFee);
+    event Refund(uint256 detail, uint256 amount, uint256 agentFee);
 
     constructor() {
         agent = payable(msg.sender);
-        //THE FEEDAO ADDRESS IS POINTING TO HARMONY MAINNET
-        feeDAO = payable(0xdBB2543b6Ef7e8480b51bE37f87fDd099b14cf86);
     }
 
     function createEscrow(address buyer, address seller)
@@ -89,17 +76,11 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
     function calculateFee(uint256 amount)
         public
         pure
-        returns (
-            uint256,
-            uint256,
-            uint256
-        )
+        returns (uint256, uint256)
     {
         uint256 agentFee = (amount.mul(FEE)).div(FEEBASE);
-        uint256 daoFee = (amount.mul(DAOFEE)).div(FEEBASE);
         uint256 result = amount.sub(agentFee);
-        result = result.sub(daoFee);
-        return (result, agentFee, daoFee);
+        return (result, agentFee);
     }
 
     function getDetails(uint256 at) external view returns (Detail memory) {
@@ -160,14 +141,11 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
         );
         require(!details[detail].withdrawn, "Already withdrawn");
         currentBalance -= details[detail].pay;
-        (uint256 pay, uint256 agentFee, uint256 daoFee) = calculateFee(
-            details[detail].pay
-        );
+        (uint256 pay, uint256 agentFee) = calculateFee(details[detail].pay);
         details[detail].withdrawn = true;
         details[detail].seller.sendValue(pay);
         agent.sendValue(agentFee);
-        feeDAO.sendValue(daoFee);
-        emit Withdraw(detail, pay, agentFee, daoFee);
+        emit Withdraw(detail, pay, agentFee);
     }
 
     function refund(uint256 detail) external nonReentrant checkAcceptance {
@@ -179,14 +157,11 @@ contract Escrow is SimpleTerms, ReentrancyGuard {
         require(details[detail].buyer == msg.sender, "Only buyer can withdraw");
         require(!details[detail].withdrawn, "Already withdrawn");
         currentBalance -= details[detail].pay;
-        (uint256 pay, uint256 agentFee, uint256 daoFee) = calculateFee(
-            details[detail].pay
-        );
+        (uint256 pay, uint256 agentFee) = calculateFee(details[detail].pay);
         details[detail].withdrawn = true;
         details[detail].buyer.sendValue(pay);
         agent.sendValue(agentFee);
-        feeDAO.sendValue(daoFee);
-        emit Refund(detail, pay, agentFee, daoFee);
+        emit Refund(detail, pay, agentFee);
     }
 
     function getLastDetailIndex() external view returns (uint256) {
