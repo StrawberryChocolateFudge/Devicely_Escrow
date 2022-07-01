@@ -22,7 +22,7 @@ const contractAddress = () => {
   }
 };
 
-export const getCurrentChainCurrency = () => "ONE";
+export const getCurrentChainCurrency = () => "ETH";
 const web3 = getWeb3();
 const contract = getContract();
 
