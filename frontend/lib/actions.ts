@@ -2,7 +2,7 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable no-undef */
 /* eslint-disable node/no-missing-import */
-import { fetchONEUSDPrice } from "./fetch";
+import { fetchETHUSDPrice, updateEscrowState } from "./fetch";
 import { parseQueryString } from "./utils";
 import {
   createSuccess,
@@ -41,6 +41,7 @@ export async function connectWalletAction() {
       await requestAccounts();
 
       const query = parseQueryString(location.search.replace("?", ""), false);
+      // TODO: query.price
       if (!isNaN(parseInt(query.escrow))) {
         openEscrow(query.escrow);
       } else {
@@ -56,11 +57,11 @@ async function clickEscrowLink(el: HTMLElement) {
   const address = await getAddress();
   const arbiter = await getArbiter();
   let fee = await getFee(escrow.pay);
+
   if (fee[1] !== undefined) {
-    const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
-    fee = addedFees.toString();
+    fee = fee[1];
   } else {
-    fee = 0;
+    fee = "0";
   }
 
   getPage(PageState.Escrow, { data: escrow, address, arbiter, nr, fee });
@@ -77,13 +78,12 @@ export async function historyPageActions() {
       const address = await getAddress();
       const arbiter = await getArbiter();
       let fee = await getFee(escrow.pay);
-      if (fee[1] !== undefined) {
-        const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
-        fee = addedFees.toString();
-      } else {
-        fee = 0;
-      }
 
+      if (fee[1] !== undefined) {
+        fee = fee[1];
+      } else {
+        fee = "0";
+      }
       getPage(PageState.Escrow, { data: escrow, address, arbiter, nr, fee });
     };
   }
@@ -104,13 +104,18 @@ export async function escrowActions(detail, address, arbiter, nr) {
   const onReceipt = async (receipt) => {
     const escrow = await getDetailByIndex(nr);
     let fee = await getFee(escrow.pay);
+
     if (fee[1] !== undefined) {
-      const addedFees = parseInt(fee[1]) + parseInt(fee[2]);
-      fee = addedFees.toString();
+      fee = fee[1];
     } else {
-      fee = 0;
+      fee = "0";
     }
 
+    const body = document.getElementsByTagName("body");
+
+    const serverurl = body[0].dataset.serverurl;
+
+    await updateEscrowState(serverurl + "/escrowState", nr);
     getPage(PageState.Escrow, {
       data: escrow,
       address,
@@ -132,7 +137,7 @@ export async function escrowActions(detail, address, arbiter, nr) {
           renderError("");
           if (parseFloat(amountEl.value) > 0) {
             if (accepted) {
-              const price = await fetchONEUSDPrice();
+              const price = await fetchETHUSDPrice();
               const usdValue = parseFloat(amountEl.value) * price;
 
               if (usdValue > max800) {
