@@ -66,7 +66,16 @@ export async function getPage(page: PageState, args: any) {
       break;
     case PageState.Escrow:
       render(
-        EscrowPage(args.data, args.address, args.arbiter, args.nr, args.fee),
+        EscrowPage(
+          args.data,
+          args.address,
+          args.arbiter,
+          args.nr,
+          args.fee,
+          args.ethPrice,
+          args.usdPrice,
+          args.showUSDPrice
+        ),
         main
       );
       escrowActions(args.data, args.address, args.arbiter, args.nr);
@@ -129,12 +138,35 @@ function getStateText(state) {
   }
 }
 
-const getAction = (address, buyer, seller, arbiter, state, withdrawn) => {
+const getAction = (
+  address,
+  buyer,
+  seller,
+  arbiter,
+  state,
+  withdrawn,
+  ethPrice,
+  usdPrice,
+  showUSDPrice
+) => {
   switch (address) {
     case buyer:
       if (state === "0") {
         return html`
-          <input type="text" id="payment-amount" placeholder="Amount" />
+          ${showUSDPrice
+            ? html` <label for="payment-amount"
+                ><small
+                  >Required deposit value is: ${usdPrice} USD</small
+                ></label
+              >`
+            : nothing}
+
+          <input
+            type="text"
+            id="payment-amount"
+            placeholder="Amount"
+            value="${ethPrice}"
+          />
           <button class="width-200 center" id="deposit-payment">
             Deposit Payment
           </button>
@@ -220,7 +252,16 @@ const backButton = () => html`
 `;
 
 // Action button toggles based on if I'm the arbiter, the buyer or the seller
-export const EscrowPage = (escrow, address, arbiter, escrowNr, fee) => html`
+export const EscrowPage = (
+  escrow,
+  address,
+  arbiter,
+  escrowNr,
+  fee,
+  ethPrice,
+  usdPrice,
+  showUSDPrice
+) => html`
   <article id="escrow-body" data-nr="${escrowNr}" class="maxwidth-800px center">
     ${backButton()}
     <h3 class="text-align-center">Escrow ${escrowNr}</h3>
@@ -247,7 +288,10 @@ export const EscrowPage = (escrow, address, arbiter, escrowNr, fee) => html`
       escrow.seller,
       arbiter,
       escrow.state,
-      escrow.withdrawn
+      escrow.withdrawn,
+      ethPrice,
+      usdPrice,
+      showUSDPrice
     )}
   </article>
 `;
