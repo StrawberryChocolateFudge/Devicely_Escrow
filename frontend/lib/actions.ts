@@ -41,9 +41,9 @@ export async function connectWalletAction() {
       await requestAccounts();
 
       const query = parseQueryString(location.search.replace("?", ""), false);
-      // TODO: query.price
+
       if (!isNaN(parseInt(query.escrow))) {
-        openEscrow(query.escrow);
+        openEscrow(query.escrow, query.price);
       } else {
         renderError("Invalid Escrow");
       }
@@ -367,7 +367,7 @@ export async function findOrCreateActions() {
   };
 }
 
-export async function openEscrow(nr) {
+export async function openEscrow(nr, price) {
   await requestAccounts();
   try {
     const detail = await getDetailByIndex(nr);
@@ -381,12 +381,25 @@ export async function openEscrow(nr) {
       fee = 0;
     }
 
+    if (price !== undefined && detail.state === "0") {
+      if (isNaN(parseInt(price))) {
+        return renderError("Price is not a number");
+      }
+    }
+    // Fetch the price needed
+    const rate = await fetchETHUSDPrice();
+    const decimalsHandled = (parseFloat(price) / 100).toFixed(2);
+
+    const ethPrice = (parseFloat(decimalsHandled) / rate).toFixed(6);
     getPage(PageState.Escrow, {
       data: detail,
       address,
       arbiter,
       nr,
       fee,
+      ethPrice,
+      usdPrice: decimalsHandled,
+      showUSDPrice: true,
     });
   } catch (err) {
     renderError(err);
