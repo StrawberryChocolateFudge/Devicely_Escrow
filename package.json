@@ -36,7 +36,8 @@
   },
   "scripts": {
     "dev": "parcel frontend/index.html",
-    "build": "parcel build frontend/index.html"
+    "build": "parcel build frontend/index.html",
+    "inline": "cat dist/index.html | inline-source --root dist > dist/bundle.html"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.5.0",
