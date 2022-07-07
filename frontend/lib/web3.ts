@@ -1,6 +1,7 @@
 /* eslint-disable node/no-missing-import */
 import Web3 from "web3";
-import escrow from "../../artifacts/contracts/Escrow.sol/Escrow.json";
+import { escrow } from "./abi";
+
 import { renderError } from "./views";
 declare global {
   // eslint-disable-next-line no-unused-vars
@@ -113,7 +114,7 @@ export async function getDetailByIndex(index: string) {
 }
 
 export function getContract() {
-  const abi = JSON.parse(JSON.stringify(escrow)).abi;
+  const abi = escrow.abi;
   const address = contractAddress();
   return new web3.eth.Contract(abi, address);
 }
