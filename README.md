@@ -1,6 +1,7 @@
 # Devicely Payments
 
-Payments for Devicely. Created for the Sustainable Blockchain Hackathon.
+Created the Sustainable Blockchain Hackathon for the payment system of Devicely.
+You can find out about Devicely [here](https://github.com/StrawberryChocolateFudge/Devicely).
 
 This full stack escrow application helps facilitate payments between buyers and sellers.
 
@@ -8,8 +9,8 @@ It was created with Hardhat ❤️ Parcel.
 
 This escrow can be used as a drop-in solution for an E-commerce app.
 
-It was forked from a previous version that I modified to fit Devicely.
-You can find out about Devicely [here](https://github.com/StrawberryChocolateFudge/Devicely).
+This repo was forked from a previous version that I modified now to fit Devicely.
+You can fork away and use it in your own project
 
 Devicely Payments Contract deployed on Ropsten Testnet
 
