@@ -1,16 +1,16 @@
 # Devicely Payments
 
-Created the Sustainable Blockchain Hackathon for the payment system of Devicely.
 You can find out about Devicely [here](https://github.com/StrawberryChocolateFudge/Devicely).
+It's a marketplace created for the Sustainable Blockchain Hackathon.
 
-This full stack escrow application helps facilitate payments between buyers and sellers.
+The full stack escrow application in this repository was built to help create safe payments between buyers and sellers, it was modified to work with Devicely.
 
 It was created with Hardhat ❤️ Parcel.
 
 This escrow can be used as a drop-in solution for an E-commerce app.
 
-This repo was forked from a previous version that I modified now to fit Devicely.
-You can fork away and use it in your own project
+This repo was forked from a previous version (built by me) that I modified now to fit Devicely.
+You can fork away and use it in your own project.
 
 Devicely Payments Contract deployed on Ropsten Testnet
 
@@ -19,6 +19,11 @@ Devicely Payments Contract deployed on Ropsten Testnet
 #### Fee
 
 This escrow charges 2% fee on all payments and uses a Ricardian Contract.
+
+# Front end
+
+I built the UI using parcel, it's found in the /frontend folder.
+It uses Pico.css. It's a lightweight app that was built to be as simple as possible.
 
 # API docs
 
@@ -184,7 +189,7 @@ You can check if the escrow is deprecated by calling this.
 
 # Dev
 
-Install dependencies
+Install dependencies:
 
      npm install
 
@@ -192,10 +197,14 @@ Start the local network:
 
      npx hardhat node
 
-Run tests
+Run tests:
 
     npx hardhat test
 
-Deploy
+Deploy:
 
      npx hardhat run scripts/deploy.ts --network localhost
+
+Front end:
+
+    npm run dev
