@@ -32,9 +32,8 @@ describe("Escrow", function () {
     detail = await escrow.getDetailByIndex(1);
     expect(detail.pay).to.equal(parseEther("10"));
     const calculatedFee = await escrow.calculateFee(detail.pay);
-    expect(calculatedFee[0]).to.equal(parseEther("9.7"));
+    expect(calculatedFee[0]).to.equal(parseEther("9.8"));
     expect(calculatedFee[1]).to.equal(parseEther("0.2"));
-    expect(calculatedFee[2]).to.equal(parseEther("0.1"));
 
     // set it to delivered now and withdraw it
     await escrow.connect(buyer).confirmDelivery(1);
